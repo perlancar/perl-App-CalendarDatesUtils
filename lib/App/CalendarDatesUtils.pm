@@ -44,7 +44,7 @@ $SPEC{list_calendar_dates} = {
             'x.name.singular' => 'modules',
             schema => ['array*', of=>'perl::modname*'],
             cmdline_aliases => {m=>{}},
-            'x.completion' => [perl_modname => {ns_prefix=>'Calendar::Dates'}],
+            'x.element_completion' => [perl_modname => {ns_prefix=>'Calendar::Dates::'}],
         },
         all => {
             summary => 'Use all installed Calendar::Dates::* modules',
