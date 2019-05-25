@@ -28,6 +28,13 @@ $SPEC{list_calendar_dates} = {
     summary => 'List dates from one or more Calendar::Dates::* modules',
     args => {
         year => {
+            summary => 'Specify year of dates to list',
+            description => <<'_',
+
+The default is to list dates in the current year. You can specify all_years
+instead to list dates from all available years.
+
+_
             schema => 'int*',
             pos => 0,
         },
@@ -39,6 +46,11 @@ $SPEC{list_calendar_dates} = {
             schema => ['int*', in=>[1, 31]],
             pos => 2,
         },
+        all_years => {
+            summary => 'List dates from all available years '.
+                'instead of a single year',
+            schema => 'true*',
+        },
         modules => {
             'x.name.is_plural' => 1,
             'x.name.singular' => 'modules',
@@ -46,10 +58,9 @@ $SPEC{list_calendar_dates} = {
             cmdline_aliases => {m=>{}},
             'x.element_completion' => [perl_modname => {ns_prefix=>'Calendar::Dates::'}],
         },
-        all => {
+        all_modules => {
             summary => 'Use all installed Calendar::Dates::* modules',
             schema => 'true*',
-            cmdline_aliases => {a=>{}},
         },
         detail => {
             schema => 'bool*',
@@ -57,7 +68,12 @@ $SPEC{list_calendar_dates} = {
         },
     },
     args_rels => {
-        req_one => ['modules', 'all'],
+        'req_one&' => [
+            ['modules', 'all_modules'],
+        ],
+        'choose_one&' => [
+            ['year', 'all_years'],
+        ],
     },
 };
 sub list_calendar_dates {
@@ -68,7 +84,7 @@ sub list_calendar_dates {
     my $day  = $args{day};
 
     my $modules;
-    if ($args{all}) {
+    if ($args{all_modules}) {
         $modules = list_calendar_dates_modules()->[2];
     } else {
         $modules = $args{modules};
@@ -80,14 +96,22 @@ sub list_calendar_dates {
         (my $mod_pm = "$mod.pm") =~ s!::!/!g;
         require $mod_pm;
 
-        my $res;
-        eval { $res = $mod->get_entries($year, $mon, $day) };
-        if ($@) {
-            warn "Can't get entries from $mod: $@, skipped";
-            next;
+        my $years;
+        if ($args{all_years}) {
+            $years = [ $mod->get_min_year .. $mod->get_max_year ];
+        } else {
+            $years = [ $year ];
         }
 
-        push @rows, @$res;
+        for my $y (@$years) {
+            my $res;
+            eval { $res = $mod->get_entries($y, $mon, $day) };
+            if ($@) {
+                warn "Can't get entries from $mod (year=$y): $@, skipped";
+                next;
+            }
+            push @rows, @$res;
+        }
     }
 
     unless ($args{detail}) {
