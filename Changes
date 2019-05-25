@@ -1,3 +1,8 @@
+0.004   2019-05-25 (PERLANCAR)
+
+	- list-calendar-dates: Add --param option.
+
+
 0.003   2019-05-25 (PERLANCAR)
 
 	- list-calendar-dates: Remove --all (-a), replace it with
