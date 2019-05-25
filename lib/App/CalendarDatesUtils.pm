@@ -62,6 +62,12 @@ _
             summary => 'Use all installed Calendar::Dates::* modules',
             schema => 'true*',
         },
+        params => {
+            summary => 'Specify parameters',
+            'x.name.is_plural' => 1,
+            'x.name.singular' => 'param',
+            'schema' => ['hash*', of=>'str*'],
+        },
         detail => {
             schema => 'bool*',
             cmdline_aliases => {l=>{}},
@@ -105,7 +111,13 @@ sub list_calendar_dates {
 
         for my $y (@$years) {
             my $res;
-            eval { $res = $mod->get_entries($y, $mon, $day) };
+            eval {
+                my @args = ($y, $mon, $day);
+                if ($args{params} && keys %{$args{params}}) {
+                    unshift @args, $args{params};
+                }
+                $res = $mod->get_entries(@args);
+            };
             if ($@) {
                 warn "Can't get entries from $mod (year=$y): $@, skipped";
                 next;
