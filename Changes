@@ -1,3 +1,8 @@
+0.005   2019-05-28 (PERLANCAR)
+
+	- list-calendar-dates: Add option: --(no-)past.
+
+
 0.004   2019-05-25 (PERLANCAR)
 
 	- list-calendar-dates: Add --param option.
