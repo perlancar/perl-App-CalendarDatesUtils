@@ -6,6 +6,7 @@ package App::CalendarDatesUtils;
 use 5.010001;
 use strict 'subs', 'vars';
 use warnings;
+#use Log::ger;
 
 our %SPEC;
 
@@ -72,6 +73,10 @@ _
             schema => 'bool*',
             cmdline_aliases => {l=>{}},
         },
+        past => {
+            schema => 'bool*',
+            'summary' => "Filter entries that are less than (at least) today's date",
+        },
     },
     args_rels => {
         'req_one&' => [
@@ -85,7 +90,14 @@ _
 sub list_calendar_dates {
     my %args = @_;
 
-    my $year = $args{year} // (localtime)[5]+1900;
+    my @lt = localtime;
+    my $year_today = $lt[5]+1900;
+    my $mon_today  = $lt[4]+1;
+    my $day_today  = $lt[3];
+    #log_trace "date_today: %04d-%02d-%02d", $year_today, $mon_today, $day_today;
+    #my $date_today = sprintf "%04d-%02d-%02d", $year_today, $mon_today, $day_today;
+
+    my $year = $args{year} // $year_today;
     my $mon  = $args{month};
     my $day  = $args{day};
 
@@ -122,7 +134,17 @@ sub list_calendar_dates {
                 warn "Can't get entries from $mod (year=$y): $@, skipped";
                 next;
             }
-            push @rows, @$res;
+            for my $item (@$res) {
+                if (defined $args{past}) {
+                    my $date_cmp =
+                        $item->{year}  <=> $year_today ||
+                        $item->{month} <=> $mon_today  ||
+                        $item->{day}   <=> $day_today;
+                    next if  $args{past} &&  $date_cmp >  0;
+                    next if !$args{past} &&  $date_cmp <= 0;
+                }
+                push @rows, $item;
+            }
         }
     }
 
