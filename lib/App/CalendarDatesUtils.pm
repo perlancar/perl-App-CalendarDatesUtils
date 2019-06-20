@@ -30,14 +30,17 @@ $SPEC{list_calendar_dates} = {
         year => {
             schema => 'int*',
             pos => 0,
+            tags => ['category:entry-filtering'],
         },
         month => {
             schema => ['int*', in=>[1, 12]],
             pos => 1,
+            tags => ['category:entry-filtering'],
         },
         day => {
             schema => ['int*', in=>[1, 31]],
             pos => 2,
+            tags => ['category:entry-filtering'],
         },
         modules => {
             'x.name.is_plural' => 1,
@@ -45,11 +48,39 @@ $SPEC{list_calendar_dates} = {
             schema => ['array*', of=>'perl::modname*'],
             cmdline_aliases => {m=>{}},
             'x.element_completion' => [perl_modname => {ns_prefix=>'Calendar::Dates::'}],
+            tags => ['category:module-selection'],
         },
-        all => {
+        all_modules => {
             summary => 'Use all installed Calendar::Dates::* modules',
             schema => 'true*',
             cmdline_aliases => {a=>{}},
+            tags => ['category:module-selection'],
+        },
+        all_entries => {
+            summary => 'Return all entries (include low-priority ones)',
+            schema => 'true*',
+            cmdline_aliases => {A=>{}},
+            description => <<'_',
+
+By default, low-priority entries (entries tagged `low-priority`) are not
+included. This option will include those entries.
+
+_
+            tags => ['category:entry-filtering'],
+        },
+        include_tags => {
+            'x.name.is_plural' => 1,
+            'x.name.singular' => 'include_tag',
+            schema => ['array*', of=>'str*'],
+            cmdline_aliases => {t=>{}},
+            tags => ['category:entry-filtering'],
+        },
+        exclude_tags => {
+            'x.name.is_plural' => 1,
+            'x.name.singular' => 'exclude_tag',
+            schema => ['array*', of=>'str*'],
+            cmdline_aliases => {T=>{}},
+            tags => ['category:entry-filtering'],
         },
         detail => {
             schema => 'bool*',
@@ -57,7 +88,7 @@ $SPEC{list_calendar_dates} = {
         },
     },
     args_rels => {
-        req_one => ['modules', 'all'],
+        req_one => ['modules', 'all_modules'],
     },
 };
 sub list_calendar_dates {
@@ -74,6 +105,13 @@ sub list_calendar_dates {
         $modules = $args{modules};
     }
 
+    my $params = {};
+    $params->{include_tags} = delete $args{include_tags}
+        if $args{include_tags};
+    $params->{exclude_tags} = delete $args{exclude_tags}
+        if $args{exclude_tags};
+    $params->{all} = delete $args{all_entries};
+
     my @rows;
     for my $mod (@$modules) {
         $mod = "Calendar::Dates::$mod" unless $mod =~ /\ACalendar::Dates::/;
@@ -81,7 +119,7 @@ sub list_calendar_dates {
         require $mod_pm;
 
         my $res;
-        eval { $res = $mod->get_entries($year, $mon, $day) };
+        eval { $res = $mod->get_entries($params, $year, $mon, $day) };
         if ($@) {
             warn "Can't get entries from $mod: $@, skipped";
             next;
