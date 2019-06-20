@@ -1,3 +1,12 @@
+0.003   2019-06-20 (PERLANCAR)
+
+	- list-calendar-dates: Rename --all (-a) to --all-modules (-a), add
+	  --all-entries (-A), add --include-tags (-t) & --exclude-tags
+	  (-T).
+
+	- [bugfix] Fix completion in Rinci metadata.
+
+
 0.002   2019-02-14 (PERLANCAR)
 
 	- list-calendar-dates: allow listing from multiple modules, add
