@@ -5,15 +5,21 @@
 
 0.006   2019-06-26 (PERLANCAR)
 
-	- Tweak Rinci metadata.
+	- UPDATE 2019-06-26: this release should not be used.
+
+        - Tweak Rinci metadata.
 
 
 0.005   2019-05-28 (PERLANCAR)
+
+	- UPDATE 2019-06-26: this release should not be used.
 
 	- list-calendar-dates: Add option: --(no-)past.
 
 
 0.004   2019-05-25 (PERLANCAR)
+
+	- UPDATE 2019-06-26: this release should not be used.
 
 	- list-calendar-dates: Add --param option.
 
