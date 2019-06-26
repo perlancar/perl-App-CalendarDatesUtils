@@ -6,6 +6,7 @@ package App::CalendarDatesUtils;
 use 5.010001;
 use strict 'subs', 'vars';
 use warnings;
+#use Log::ger;
 
 our %SPEC;
 
@@ -28,6 +29,13 @@ $SPEC{list_calendar_dates} = {
     summary => 'List dates from one or more Calendar::Dates::* modules',
     args => {
         year => {
+            summary => 'Specify year of dates to list',
+            description => <<'_',
+
+The default is to list dates in the current year. You can specify all_years
+instead to list dates from all available years.
+
+_
             schema => 'int*',
             pos => 0,
             tags => ['category:entry-filtering'],
@@ -42,7 +50,14 @@ $SPEC{list_calendar_dates} = {
             pos => 2,
             tags => ['category:entry-filtering'],
         },
+        all_years => {
+            summary => 'List dates from all available years '.
+                'instead of a single year',
+            schema => 'true*',
+            tags => ['category:entry-filtering'],
+        },
         modules => {
+            summary => 'Name(s) of Calendar::Dates::* module (without the prefix)',
             'x.name.is_plural' => 1,
             'x.name.singular' => 'modules',
             schema => ['array*', of=>'perl::modname*'],
@@ -82,24 +97,49 @@ _
             cmdline_aliases => {T=>{}},
             tags => ['category:entry-filtering'],
         },
+        params => {
+            summary => 'Specify parameters',
+            'x.name.is_plural' => 1,
+            'x.name.singular' => 'param',
+            'schema' => ['hash*', of=>'str*'],
+        },
         detail => {
+            summary => 'Whether to show detailed record for each date',
             schema => 'bool*',
             cmdline_aliases => {l=>{}},
         },
+        past => {
+            schema => 'bool*',
+            'summary' => "Only show entries that are less than (at least) today's date",
+            'summary.alt.bool.not' => "Filter entries that are less than (at least) today's date",
+            tags => ['category:entry-filtering'],
+        },
     },
     args_rels => {
-        req_one => ['modules', 'all_modules'],
+        'req_one&' => [
+            ['modules', 'all_modules'],
+        ],
+        'choose_one&' => [
+            ['year', 'all_years'],
+        ],
     },
 };
 sub list_calendar_dates {
     my %args = @_;
 
-    my $year = $args{year} // (localtime)[5]+1900;
+    my @lt = localtime;
+    my $year_today = $lt[5]+1900;
+    my $mon_today  = $lt[4]+1;
+    my $day_today  = $lt[3];
+    #log_trace "date_today: %04d-%02d-%02d", $year_today, $mon_today, $day_today;
+    #my $date_today = sprintf "%04d-%02d-%02d", $year_today, $mon_today, $day_today;
+
+    my $year = $args{year} // $year_today;
     my $mon  = $args{month};
     my $day  = $args{day};
 
     my $modules;
-    if ($args{all}) {
+    if ($args{all_modules}) {
         $modules = list_calendar_dates_modules()->[2];
     } else {
         $modules = $args{modules};
@@ -118,14 +158,38 @@ sub list_calendar_dates {
         (my $mod_pm = "$mod.pm") =~ s!::!/!g;
         require $mod_pm;
 
-        my $res;
-        eval { $res = $mod->get_entries($params, $year, $mon, $day) };
-        if ($@) {
-            warn "Can't get entries from $mod: $@, skipped";
-            next;
+        my $years;
+        if ($args{all_years}) {
+            $years = [ $mod->get_min_year .. $mod->get_max_year ];
+        } else {
+            $years = [ $year ];
         }
 
-        push @rows, @$res;
+        for my $y (@$years) {
+            my $res;
+            eval {
+                my @args = ($y, $mon, $day);
+                if ($args{params} && keys %{$args{params}}) {
+                    unshift @args, $args{params};
+                }
+                $res = $mod->get_entries(@args);
+            };
+            if ($@) {
+                warn "Can't get entries from $mod (year=$y): $@, skipped";
+                next;
+            }
+            for my $item (@$res) {
+                if (defined $args{past}) {
+                    my $date_cmp =
+                        $item->{year}  <=> $year_today ||
+                        $item->{month} <=> $mon_today  ||
+                        $item->{day}   <=> $day_today;
+                    next if  $args{past} &&  $date_cmp >  0;
+                    next if !$args{past} &&  $date_cmp <= 0;
+                }
+                push @rows, $item;
+            }
+        }
     }
 
     unless ($args{detail}) {
