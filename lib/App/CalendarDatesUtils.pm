@@ -38,30 +38,37 @@ instead to list dates from all available years.
 _
             schema => 'int*',
             pos => 0,
+            tags => ['category:filtering'],
         },
         month => {
             schema => ['int*', in=>[1, 12]],
             pos => 1,
+            tags => ['category:filtering'],
         },
         day => {
             schema => ['int*', in=>[1, 31]],
             pos => 2,
+            tags => ['category:filtering'],
         },
         all_years => {
             summary => 'List dates from all available years '.
                 'instead of a single year',
             schema => 'true*',
+            tags => ['category:filtering'],
         },
         modules => {
+            summary => 'Name(s) of Calendar::Dates::* module (without the prefix)',
             'x.name.is_plural' => 1,
             'x.name.singular' => 'modules',
             schema => ['array*', of=>'perl::modname*'],
             cmdline_aliases => {m=>{}},
             'x.element_completion' => [perl_modname => {ns_prefix=>'Calendar::Dates::'}],
+            tags => ['category:module-selection'],
         },
         all_modules => {
             summary => 'Use all installed Calendar::Dates::* modules',
             schema => 'true*',
+            tags => ['category:module-selection'],
         },
         params => {
             summary => 'Specify parameters',
@@ -70,12 +77,15 @@ _
             'schema' => ['hash*', of=>'str*'],
         },
         detail => {
+            summary => 'Whether to show detailed record for each date',
             schema => 'bool*',
             cmdline_aliases => {l=>{}},
         },
         past => {
             schema => 'bool*',
-            'summary' => "Filter entries that are less than (at least) today's date",
+            'summary' => "Only show entries that are less than (at least) today's date",
+            'summary.alt.bool.not' => "Filter entries that are less than (at least) today's date",
+            tags => ['category:filtering'],
         },
     },
     args_rels => {
