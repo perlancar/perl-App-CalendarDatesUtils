@@ -28,6 +28,13 @@ $SPEC{list_calendar_dates} = {
     v => 1.1,
     summary => 'List dates from one or more Calendar::Dates::* modules',
     args => {
+        action => {
+            schema => ['str*', in=>['list-dates', 'list-modules']],
+            default => 'list-dates',
+            cmdline_aliases => {
+                L => {is_flag=>1, summary=>'List all Calendar::Dates modules (eqv to --action=list-modules)', code=>sub { $_[0]{action} = 'list-modules' }},
+            },
+        },
         year => {
             summary => 'Specify year of dates to list',
             description => <<'_',
@@ -116,7 +123,7 @@ _
         },
     },
     args_rels => {
-        'req_one&' => [
+        'choose_one&' => [
             ['modules', 'all_modules'],
         ],
         'choose_one&' => [
@@ -126,6 +133,11 @@ _
 };
 sub list_calendar_dates {
     my %args = @_;
+
+    my $action = $args{action} // 'list-dates';
+    if ($action eq 'list-modules') {
+        return list_calendar_dates_modules();
+    }
 
     my @lt = localtime;
     my $year_today = $lt[5]+1900;
