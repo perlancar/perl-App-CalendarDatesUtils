@@ -45,17 +45,19 @@ instead to list dates from all available years.
 _
             schema => 'int*',
             pos => 0,
-            cmdline_aliases=>{y=>{}},
+            cmdline_aliases => {Y=>{}},
             tags => ['category:entry-filtering'],
         },
         month => {
             schema => ['int*', between=>[1, 12]],
             pos => 1,
+            cmdline_aliases => {M=>{}},
             tags => ['category:entry-filtering'],
         },
         day => {
             schema => ['int*', between=>[1, 31]],
             pos => 2,
+            cmdline_aliases => {D=>{}},
             tags => ['category:entry-filtering'],
         },
         all_years => {
