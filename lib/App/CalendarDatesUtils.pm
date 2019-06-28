@@ -63,6 +63,13 @@ _
                 'instead of a single year',
             schema => 'true*',
             tags => ['category:entry-filtering'],
+            description => <<'_',
+
+Note that by default, following common usage pattern, dates with years that are
+too old (< 10 years ago) or that are too far into the future (> 10 years from
+now) are not included, unless you combine this option with --all-entries (-A).
+
+_
         },
         modules => {
             summary => 'Name(s) of Calendar::Dates::* module (without the prefix)',
@@ -87,6 +94,9 @@ _
 
 By default, low-priority entries (entries tagged `low-priority`) are not
 included. This option will include those entries.
+
+When combined with --all-years, this option will also cause all very early years
+and all years far into the future to be included also.
 
 _
             tags => ['category:entry-filtering'],
@@ -175,7 +185,21 @@ sub list_calendar_dates {
 
         my $years;
         if ($args{all_years}) {
-            $years = [ $mod->get_min_year .. $mod->get_max_year ];
+            my $min = $mod->get_min_year;
+            if ($min < $year_today - 10 && !$args{all_entries}) {
+                warn "Warning: There are dates with year earlier than ".
+                    ($year_today - 10). " that are not included, ".
+                    "use --all-entries to include them\n";
+                $min = $year_today - 10;
+            }
+            my $max = $mod->get_max_year;
+            if ($max > $year_today + 10 && !$args{all_entries}) {
+                warn "Warning: There are dates with year later than ".
+                    ($year_today + 10). " that are not included, ".
+                    "use --all-entries to include them\n";
+                $max = $year_today + 10;
+            }
+            $years = [$min..$max];
         } else {
             $years = [ $year ];
         }
