@@ -48,6 +48,14 @@ _
             cmdline_aliases => {Y=>{}},
             tags => ['category:entry-filtering'],
         },
+        min_year => {
+            schema => 'int*',
+            tags => ['category:entry-filtering'],
+        },
+        max_year => {
+            schema => 'int*',
+            tags => ['category:entry-filtering'],
+        },
         month => {
             schema => ['int*', between=>[1, 12]],
             pos => 1,
@@ -138,9 +146,11 @@ _
     args_rels => {
         'choose_one&' => [
             ['modules', 'all_modules'],
-        ],
-        'choose_one&' => [
             ['year', 'all_years'],
+            ['year', 'min_year'],
+            ['year', 'max_year'],
+        ],
+        'choose_all&' => [
         ],
     },
 };
@@ -186,15 +196,15 @@ sub list_calendar_dates {
         require $mod_pm;
 
         my $years;
+        my $min = $mod->get_min_year;
+        my $max = $mod->get_max_year;
         if ($args{all_years}) {
-            my $min = $mod->get_min_year;
             if ($min < $year_today - 10 && !$args{all_entries}) {
                 warn "Warning: There are dates with year earlier than ".
                     ($year_today - 10). " that are not included, ".
                     "use --all-entries to include them\n";
                 $min = $year_today - 10;
             }
-            my $max = $mod->get_max_year;
             if ($max > $year_today + 10 && !$args{all_entries}) {
                 warn "Warning: There are dates with year later than ".
                     ($year_today + 10). " that are not included, ".
@@ -202,8 +212,12 @@ sub list_calendar_dates {
                 $max = $year_today + 10;
             }
             $years = [$min..$max];
-        } else {
+        } elsif (defined $args{min_year} || defined $args{max_year}) {
+            $years = [($args{min_year} // $year_today) .. ($args{max_year} // $year_today)];
+        } elsif (defined $args{year}) {
             $years = [ $year ];
+        } else {
+            return [400, "Please specify year, or min_year/max_year, or all_years"];
         }
 
         for my $y (@$years) {
