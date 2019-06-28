@@ -45,6 +45,7 @@ instead to list dates from all available years.
 _
             schema => 'int*',
             pos => 0,
+            cmdline_aliases=>{y=>{}},
             tags => ['category:entry-filtering'],
         },
         month => {
@@ -153,8 +154,10 @@ sub list_calendar_dates {
     my $modules;
     if ($args{all_modules}) {
         $modules = list_calendar_dates_modules()->[2];
-    } else {
+    } elsif ($args{modules}) {
         $modules = $args{modules};
+    } else {
+        return [400, "Please specify modules or all_modules"];
     }
 
     my $params = {};
