@@ -1,3 +1,24 @@
+0.009   2019-06-28 (PERLANCAR)
+
+        [Script: list-calendar-dates]
+
+	- Add options --min-year, --max-year.
+
+	- [ux] Add short aliases -Y for --year, -M for --month, -D for --day.
+
+	- [ux] [incompatible change] By default, --all-years only show dates at
+	  most 10 years to the back and future, to avoid showing many years
+	  (-9999) for anniversaries. User will need to specify --all-entries
+	  (-A) to show dates beyond that range.
+
+	- [ux] Add -L option to list all Calendar::Dates::* modules. This is
+	  mostly a convenience so we don't have to use the separate script
+	  list-calendar-dates-modules.
+
+	- [bugfix] Fix schema for month and day (used 'between' instead of 'in'
+	  clause).
+
+
 0.008   2019-06-26 (PERLANCAR)
 
 	- No functional changes.
