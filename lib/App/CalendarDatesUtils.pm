@@ -41,12 +41,12 @@ _
             tags => ['category:entry-filtering'],
         },
         month => {
-            schema => ['int*', in=>[1, 12]],
+            schema => ['int*', between=>[1, 12]],
             pos => 1,
             tags => ['category:entry-filtering'],
         },
         day => {
-            schema => ['int*', in=>[1, 31]],
+            schema => ['int*', between=>[1, 31]],
             pos => 2,
             tags => ['category:entry-filtering'],
         },
