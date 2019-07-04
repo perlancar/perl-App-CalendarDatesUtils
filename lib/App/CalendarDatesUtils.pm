@@ -155,9 +155,9 @@ _
     },
 };
 sub list_calendar_dates {
-    my %args = @_;
+    my %args = @_; # VALIDATE_ARGS
 
-    my $action = $args{action} // 'list-dates';
+    my $action = $args{action};
     if ($action eq 'list-modules') {
         return list_calendar_dates_modules();
     }
