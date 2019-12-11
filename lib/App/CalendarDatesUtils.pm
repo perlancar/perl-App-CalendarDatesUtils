@@ -15,9 +15,9 @@ $SPEC{list_calendar_dates_modules} = {
     summary => 'List Calendar::Dates::* modules, without the prefix',
 };
 sub list_calendar_dates_modules {
-    require PERLANCAR::Module::List;
+    require Module::List::Tiny;
 
-    my $mods = PERLANCAR::Module::List::list_modules(
+    my $mods = Module::List::Tiny::list_modules(
         "Calendar::Dates::", {list_modules=>1, recurse=>1});
     my @res = sort keys %$mods;
     for (@res) { s/\ACalendar::Dates::// }
